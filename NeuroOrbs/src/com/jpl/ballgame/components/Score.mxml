@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:jpl="com.jpl.ballgame.components.*"
+		 width="358" height="300" alpha="0" creationComplete="init()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			
+			import spark.primitives.BitmapImage;
+			
+			public var title:String;
+			private var _newNumber:int = 0;
+			private var bitmapTitle:BitmapImage;
+			
+			[Bindable]
+			public function set newNumber(value:int):void{
+				if(value != _newNumber && value <= 99){
+					_newNumber = value; 
+					if(value.toString().length >= 2){
+						number2.newNumber = int(value.toString().charAt(1));
+						number1.newNumber = int(value.toString().charAt(0));
+					}else{
+						number2.newNumber = int(value.toString().charAt(0));
+						number1.newNumber = 0;
+					}
+				}
+			}
+
+			public function init():void{
+				if(title != null){
+					if(title=="score")
+						scoreTitle.alpha = 1;
+				}
+			}
+			
+			public function get newNumber():int{
+				return _newNumber;
+			}
+		]]>
+	</fx:Script>
+	<jpl:Counter id="number1" newNumber="0" style="normal" alpha="1"/>
+	<jpl:Counter id="number2" newNumber="0" x="179" style="right" alpha="1"/>
+	<s:BitmapImage id="scoreTitle" source="@Embed('assets/counter/scoreTitle.png')" alpha="0" horizontalCenter="0" top="25"/>
+</s:Group>

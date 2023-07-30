@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="179" height="300" alpha="0" creationComplete="init()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			
+			import mx.effects.easing.Circular;
+			
+			public var style:String = "left";
+			public var red5:Boolean = false;
+			public var title:String;
+			private var currentNumber:int = 0;
+			private var _newNumber:int;
+			private var speed:Number = 0.1;
+			
+			[Bindable]
+			public function set newNumber(value:int):void{
+				if(value != currentNumber){
+					_newNumber = value; 
+					changeNumber(value);
+					currentNumber = value;
+				}
+			}
+			
+			public function get newNumber():int{
+				return _newNumber;
+			}
+			
+			private function init():void{
+				if(style == "normal"){
+					backgroundNormal.alpha = 0.5;
+				}
+				if(style == "left"){
+					backgroundLeft.alpha = 0.5;
+				}
+				if(style == "right"){
+					backgroundRight.alpha = 0.5;
+				}
+				if(red5){
+					number51.alpha = 0;
+					number52.alpha = 0;
+					numberRed51.alpha = 1;
+					numberRed52.alpha = 1;
+				}
+				if(title != null){
+					if(title=="timer")
+						timerTitle.alpha = 1;
+				}
+			}
+			
+			private function changeNumber(value:int):void{
+				reset();
+				
+				if(value == 0){
+					number01.depth = 20;
+					number01.scaleY=1;
+					
+					number02.depth = 23;
+					number02.scaleY = 0;
+					
+					TweenLite.to(number02,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}	
+				if(value == 1){
+					number11.depth = 20;
+					number11.scaleY=1;
+					
+					number12.depth = 23;
+					number12.scaleY = 0;
+					
+					TweenLite.to(number12,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 2){
+					number21.depth = 20;
+					number21.scaleY=1;
+					
+					number22.depth = 23;
+					number22.scaleY = 0;
+					
+					TweenLite.to(number22,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 3){
+					number31.depth = 20;
+					number31.scaleY=1;
+					
+					number32.depth = 23;
+					number32.scaleY = 0;
+					
+					TweenLite.to(number32,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 4){
+					number41.depth = 20;
+					number41.scaleY=1;
+					
+					number42.depth = 23;
+					number42.scaleY = 0;
+					
+					TweenLite.to(number42,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 5){
+					if(red5){
+						numberRed51.depth = 20;
+						numberRed51.scaleY=1;
+					
+						numberRed52.depth = 23;
+						numberRed52.scaleY = 0;
+						
+						TweenLite.to(numberRed52,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+					}else{
+						number51.depth = 20;
+						number51.scaleY=1;
+						
+						number52.depth = 23;
+						number52.scaleY = 0;
+						
+						TweenLite.to(number52,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+					}
+				}
+				if(value == 6){
+					number61.depth = 20;
+					number61.scaleY=1;
+					
+					number62.depth = 23;
+					number62.scaleY = 0;
+					
+					TweenLite.to(number62,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 7){
+					number71.depth = 20;
+					number71.scaleY=1;
+					
+					number72.depth = 23;
+					number72.scaleY = 0;
+					
+					TweenLite.to(number72,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 8){
+					number81.depth = 20;
+					number81.scaleY=1;
+					
+					number82.depth = 23;
+					number82.scaleY = 0;
+					
+					TweenLite.to(number82,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				if(value == 9){
+					number91.depth = 20;
+					number91.scaleY=1;
+					
+					number92.depth = 23;
+					number92.scaleY = 0;
+					
+					TweenLite.to(number92,speed,{scaleY:1,ease:Circular.easeOut,delay:speed,overwrite:false})
+				}
+				
+				if(currentNumber == 0){
+					number01.depth = 21;
+					number02.depth = 22;
+					TweenLite.to(number01,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 1){
+					number11.depth = 21;
+					number12.depth = 22;
+					TweenLite.to(number11,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 2){
+					number21.depth = 21;
+					number22.depth = 22;
+					TweenLite.to(number21,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 3){
+					number31.depth = 21;
+					number32.depth = 22;
+					TweenLite.to(number31,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 4){
+					number41.depth = 21;
+					number42.depth = 22;
+					TweenLite.to(number41,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 5){
+					if(red5){
+						numberRed51.depth = 21;
+						numberRed52.depth = 22;
+						TweenLite.to(numberRed51,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+					}else{
+						number51.depth = 21;
+						number52.depth = 22;
+						TweenLite.to(number51,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+					}
+				}
+				if(currentNumber == 6){
+					number61.depth = 21;
+					number62.depth = 22;
+					TweenLite.to(number61,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 7){
+					number71.depth = 21;
+					number72.depth = 22;
+					TweenLite.to(number71,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 8){
+					number81.depth = 21;
+					number82.depth = 22;
+					TweenLite.to(number81,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				if(currentNumber == 9){
+					number91.depth = 21;
+					number92.depth = 22;
+					TweenLite.to(number91,speed,{scaleY:0,ease:Circular.easeIn,overwrite:false})
+				}
+				currentNumber = newNumber;
+			}
+			
+			private function reset():void{
+				number01.depth = 0;
+				number02.depth = 0;
+				number11.depth = 0;
+				number12.depth = 0;
+				number21.depth = 0;
+				number22.depth = 0;
+				number31.depth = 0;
+				number32.depth = 0;
+				number41.depth = 0;
+				number42.depth = 0;
+				number51.depth = 0;
+				number52.depth = 0;
+				number61.depth = 0;
+				number62.depth = 0;
+				number71.depth = 0;
+				number72.depth = 0;
+				number81.depth = 0;
+				number82.depth = 0;
+				number91.depth = 0;
+				number92.depth = 0;
+			}
+			
+			public function resize(_backgroundWidth:int,_backgroundHeight:int):void{
+				backgroundLeft.width = _backgroundHeight/6.7;
+				backgroundLeft.height = _backgroundHeight/4;
+				backgroundNormal.width = _backgroundHeight/6.7;
+				backgroundNormal.height = _backgroundHeight/4;
+				backgroundRight.width = _backgroundHeight/6.7;
+				backgroundRight.height = _backgroundHeight/4;
+				timerTitle.width = _backgroundHeight/13.8;
+				timerTitle.height = _backgroundHeight/36.36;
+				timerTitle.top = _backgroundHeight/48;
+				this.width = _backgroundHeight/6.7;
+				this.height = _backgroundHeight/4;
+				
+				number01.width = _backgroundHeight/8.7;
+				number01.height = _backgroundHeight/12.24;
+				number02.width = _backgroundHeight/8.7;
+				number02.height = _backgroundHeight/12.37;
+				
+				number11.width = _backgroundHeight/8.7;
+				number11.height = _backgroundHeight/12.24;
+				number12.width = _backgroundHeight/8.7;
+				number12.height = _backgroundHeight/12.37;
+				
+				number21.width = _backgroundHeight/8.7;
+				number21.height = _backgroundHeight/12.24;
+				number22.width = _backgroundHeight/8.7;
+				number22.height = _backgroundHeight/12.37;
+				
+				number31.width = _backgroundHeight/8.7;
+				number31.height = _backgroundHeight/12.24;
+				number32.width = _backgroundHeight/8.7;
+				number32.height = _backgroundHeight/12.37;
+				
+				number41.width = _backgroundHeight/8.7;
+				number41.height = _backgroundHeight/12.24;
+				number42.width = _backgroundHeight/8.7;
+				number42.height = _backgroundHeight/12.37;
+				
+				number51.width = _backgroundHeight/8.7;
+				number51.height = _backgroundHeight/12.24;
+				number52.width = _backgroundHeight/8.7;
+				number52.height = _backgroundHeight/12.37;
+				
+				numberRed51.width = _backgroundHeight/8.7;
+				numberRed51.height = _backgroundHeight/12.24;
+				numberRed52.width = _backgroundHeight/8.7;
+				numberRed52.height = _backgroundHeight/12.37;
+				
+				number61.width = _backgroundHeight/8.7;
+				number61.height = _backgroundHeight/12.24;
+				number62.width = _backgroundHeight/8.7;
+				number62.height = _backgroundHeight/12.37;
+				
+				number71.width = _backgroundHeight/8.7;
+				number71.height = _backgroundHeight/12.24;
+				number72.width = _backgroundHeight/8.7;
+				number72.height = _backgroundHeight/12.37;
+				
+				number81.width = _backgroundHeight/8.7;
+				number81.height = _backgroundHeight/12.24;
+				number82.width = _backgroundHeight/8.7;
+				number82.height = _backgroundHeight/12.37;
+				
+				number91.width = _backgroundHeight/8.7;
+				number91.height = _backgroundHeight/12.24;
+				number92.width = _backgroundHeight/8.7;
+				number92.height = _backgroundHeight/12.37;
+			}
+		]]>
+	</fx:Script>
+	<s:BitmapImage id="backgroundLeft" source="@Embed('assets/counter/backgroundLeftEnd.png')" alpha="0"/>
+	<s:BitmapImage id="backgroundNormal" source="@Embed('assets/counter/backgroundNormal.png')" alpha="0"/>
+	<s:BitmapImage id="backgroundRight" source="@Embed('assets/counter/backgroundRightEnd.png')" alpha="0"/>
+	<s:BitmapImage id="number91" source="@Embed('assets/counter/91.png')" transformY="{number91.height}" x="22" y="67"/>
+	<s:BitmapImage id="number92" source="@Embed('assets/counter/92.png')" x="22" y="{number92.height+67}"/>
+	<s:BitmapImage id="number81" source="@Embed('assets/counter/81.png')" transformY="{number81.height}" x="22" y="67"/>
+	<s:BitmapImage id="number82" source="@Embed('assets/counter/82.png')" x="22" y="{number82.height+67}"/>
+	<s:BitmapImage id="number71" source="@Embed('assets/counter/71.png')" transformY="{number71.height}" x="22" y="67"/>
+	<s:BitmapImage id="number72" source="@Embed('assets/counter/72.png')" x="22" y="{number72.height+67}"/>
+	<s:BitmapImage id="number61" source="@Embed('assets/counter/61.png')" transformY="{number61.height}" x="22" y="67"/>
+	<s:BitmapImage id="number62" source="@Embed('assets/counter/62.png')" x="22" y="{number62.height+67}"/>
+	<s:BitmapImage id="number51" source="@Embed('assets/counter/51.png')" transformY="{number51.height}" x="22" y="67"/>
+	<s:BitmapImage id="number52" source="@Embed('assets/counter/52.png')" x="22" y="{number52.height+67}"/>
+	<s:BitmapImage id="numberRed51" source="@Embed('assets/counter/red51.png')" transformY="{number51.height}" x="22" y="67"/>
+	<s:BitmapImage id="numberRed52" source="@Embed('assets/counter/red52.png')" x="22" y="{number52.height+67}"/>
+	<s:BitmapImage id="number41" source="@Embed('assets/counter/41.png')" transformY="{number41.height}" x="22" y="67"/>
+	<s:BitmapImage id="number42" source="@Embed('assets/counter/42.png')" x="22" y="{number42.height+67}"/>
+	<s:BitmapImage id="number31" source="@Embed('assets/counter/31.png')" transformY="{number31.height}" x="22" y="67"/>
+	<s:BitmapImage id="number32" source="@Embed('assets/counter/32.png')" x="22" y="{number32.height+67}"/>
+	<s:BitmapImage id="number21" source="@Embed('assets/counter/21.png')" transformY="{number21.height}" x="22" y="67"/>
+	<s:BitmapImage id="number22" source="@Embed('assets/counter/22.png')" x="22" y="{number22.height+67}"/>
+	<s:BitmapImage id="number11" source="@Embed('assets/counter/11.png')" transformY="{number11.height}" x="22" y="67"/>
+	<s:BitmapImage id="number12" source="@Embed('assets/counter/12.png')" x="22" y="{number12.height+67}"/>
+	<s:BitmapImage id="number01" source="@Embed('assets/counter/01.png')" transformY="{number01.height}" x="22" y="67"/>
+	<s:BitmapImage id="number02" source="@Embed('assets/counter/02.png')" x="22" y="{number01.height+67}"/>
+	<s:BitmapImage id="timerTitle" source="@Embed('assets/counter/timerTitle.png')" alpha="0" horizontalCenter="0" top="25"/>
+</s:Group>

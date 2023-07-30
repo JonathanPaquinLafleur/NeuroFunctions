@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx">
+	<!-- host component -->
+	<fx:Metadata>
+		[HostComponent("spark.components.SkinnableContainer")]
+	</fx:Metadata>
+	
+	<!-- states -->
+	<s:states>
+		<s:State name="disabled" />
+		<s:State name="normal" />
+	</s:states>
+	
+	<s:Rect id="background" left="0" top="0" right="0" bottom="0" alpha="1">
+		<s:fill>
+			<s:BitmapFill source="@Embed('assets/menu/menuBackground.png')"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group id="contentGroup" right="0" verticalCenter="0">
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+	</s:Group>
+
+	<!-- SkinParts
+	name=contentGroup, type=spark.components.Group, required=false
+	-->
+</s:Skin>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" 
+					   xmlns:jpl="com.jpl.ballgame.components.*"
+					   windowComplete="init()" frameRate="24" showStatusBar="false" backgroundAlpha="0" alwaysInFront="true">
+
+	<fx:Declarations>
+		<mx:Sprite id="emptySprite" width="0" height="0"/>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.gskinner.utils.SWFBridgeAS3;
+			import com.jpl.ballgame.BallEvent;
+			import com.jpl.ballgame.BallGame;
+			
+			import flash.display.Screen;
+			
+			import mx.effects.easing.Bounce;
+			import mx.effects.easing.Linear;
+			import mx.events.FlexEvent;
+			import mx.managers.CursorManager;
+			
+			import spark.components.Window;
+			import spark.filters.BlurFilter;
+			import spark.primitives.BitmapImage;
+			
+			[Bindable]
+			public var In1:Number;
+			[Bindable]
+			public var In2:Number;
+			[Bindable]
+			public var In3:Number;
+			[Bindable]
+			public var In4:Number;
+			[Bindable]
+			public var ballGame:BallGame;
+			public var BEBridge:SWFBridgeAS3 = new SWFBridgeAS3("_BEConnection4",this);
+			
+			[Bindable]
+			private var noHitArea:Sprite = new Sprite();
+			
+			private function init():void{ 
+				//Mouse.hide();
+				noHitArea.graphics.beginFill(0xCCFF00, 0.5);
+				noHitArea.graphics.drawRect(400, 400, 30, 30);
+				noHitArea.graphics.endFill();
+				noHitArea.mouseEnabled = false;
+				this.hitArea = noHitArea
+					
+				this.stage.addEventListener(KeyboardEvent.KEY_DOWN,test);
+				this.stage.addEventListener(FullScreenEvent.FULL_SCREEN,fullScreenMode);
+				this.addEventListener(NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGE,windowStateChanged);
+				this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;	
+				
+				
+				ballGame = new BallGame(this.stage.stageWidth,this.stage.stageHeight);
+				ballGame.mouseChildren = false;
+				ballGame.mouseEnabled = false;
+				ballGame.focusEnabled = false;
+				ballGame.hasFocusableChildren = false;
+				ballGame.useHandCursor = true;
+				ballGame.buttonMode = true;
+				this.addElement(ballGame);
+				ballGame.addEventListener(BallEvent.STARTEDPLAYING,showUI);
+				ballGame.addEventListener(BallEvent.STOPEDPLAYING,showUI);
+				
+				this.setElementIndex(menuGroup,0);
+				this.setElementIndex(counter,0);
+				this.setElementIndex(score,0);
+				this.setElementIndex(ballGame,0);
+				
+				this.stage.addEventListener(MouseEvent.MOUSE_DOWN, ballGame.onMouseDown);
+				this.stage.addEventListener(MouseEvent.MOUSE_UP, ballGame.onMouseUp);
+				this.stage.addEventListener(MouseEvent.MOUSE_MOVE, ballGame.onMouseMove);
+				
+				this.stage.addEventListener(Event.RESIZE,resizeView);
+				resizeView();
+				showMenu();
+			}
+			
+			private function test(e:KeyboardEvent):void{
+				if(e.keyCode == 27){
+					this.minimize();
+				}
+			}
+			
+			private function resizeView(e:Event=null):void{
+				ballGame.resizeGame(this.stage.stageWidth,this.stage.stageHeight);
+				//counter.resize(this.stage.stageWidth,this.stage.stageHeight);
+			}
+			
+			private function fullScreenMode(e:FullScreenEvent):void{
+//				if(!e.fullScreen){
+//					this.nativeWindow.width = 960;
+//					this.nativeWindow.height = 600;
+//					this.nativeWindow.x = (Screen.mainScreen.visibleBounds.width/2)-(this.nativeWindow.width/2);
+//					this.nativeWindow.y = (Screen.mainScreen.visibleBounds.height/2)-(this.nativeWindow.height/2);	
+//				}
+			}
+			
+			private function windowStateChanged(e:NativeWindowDisplayStateEvent):void{
+				e.stopImmediatePropagation();
+				if(e.afterDisplayState == "maximized")
+					this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+				resizeView();
+			}
+			
+			public function onSampleReceive(_In1:Number,_In2:Number,_In3:Number,_In4:Number):void{
+				In1 = _In1;
+				In2 = _In2;
+				In3 = _In3;
+				In4 = _In4;
+			}
+			
+			private function showMenu():void{
+				TweenLite.killTweensOf(menuGroup);
+				TweenLite.to(menuGroup,0.5,{right:0,ease:Linear.easeOut});
+			}
+			
+			private function hideMenu():void{
+				TweenLite.killTweensOf(menuGroup);
+				TweenLite.to(menuGroup,0.5,{right:-(menuGroup.width-50),ease:Linear.easeIn});
+			}
+			
+			public function showUI(e:BallEvent):void{
+				TweenLite.killTweensOf(score);
+				TweenLite.killTweensOf(counter);
+				if(e.playing){
+					TweenLite.to(score,1,{alpha:1,overwrite:false});
+					TweenLite.to(counter,1,{alpha:1,overwrite:false});
+				}else{
+					TweenLite.to(score,1,{alpha:0,overwrite:false});
+					TweenLite.to(counter,1,{alpha:0,overwrite:false});
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<jpl:Score id="score" newNumber="{ballGame.points}" title="score" left="0" bottom="0" mouseEnabled="false"/>
+	<jpl:Counter id="counter" newNumber="{ballGame.timerVal}" title="timer" right="0" bottom="0" red5="true" mouseEnabled="false"/>
+	
+	<s:SkinnableContainer id="menuGroup" skinClass="com.jpl.ballgame.skin.Menu" height="450" width="133" right="-100" verticalCenter="0" rollOver="showMenu()" rollOut="hideMenu()">
+		<s:VGroup gap="0" horizontalAlign="right">
+			<s:Button id="startBtn" skinClass="com.jpl.ballgame.skin.MenuGreenBtn" label="{(ballGame.paused &amp;&amp; ballGame.playing) ? 'Resume':'Start'}" click="{ballGame.start()}" enabled="{!ballGame.playing || ballGame.paused}"/>
+			<s:Button id="pauseBtn" skinClass="com.jpl.ballgame.skin.MenuRedBtn" label="Pause" click="{ballGame.pause()}" enabled="{ballGame.playing &amp;&amp; !ballGame.paused}"/>
+			<s:Button id="resetBtn" skinClass="com.jpl.ballgame.skin.MenuGoldBtn" label="Reset" click="{ballGame.reset()}" enabled="{ballGame.playing}"/>
+			<s:Button id="quitBtn" skinClass="com.jpl.ballgame.skin.MenuBlackBtn" label="Quit" click="{this.close()}"/>
+		</s:VGroup>
+	</s:SkinnableContainer>
+	
+</s:WindowedApplication>
