@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"  click="canvas1_clickHandler(event)" creationComplete="canvas1_creationCompleteHandler(event)" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.effects.AnimateProperty;
+
+			[Embed(source='assets/images/switch_left.png', scaleGridTop='2', scaleGridBottom='24', scaleGridLeft='6', scaleGridRight='48')] 
+			[Bindable] 
+			private var leftImage:Class; 
+
+			[Embed(source='assets/images/switch_right.png', scaleGridTop='2', scaleGridBottom='24', scaleGridLeft='6', scaleGridRight='48')] 
+			[Bindable] 
+			private var rightImage:Class; 
+			
+			[Embed(source='assets/images/switch_center.png')] 
+			[Bindable] 
+			private var centerImage:Class; 
+			
+			private var _selected:Boolean=false;
+			
+			[Bindable]
+			public var text1:String="ON";
+			
+			[Bindable]
+			public var text2:String="OFF";
+			
+			[Bindable]
+			public var animated:Boolean=true;
+			
+			public function get selected():Boolean
+			{
+				return _selected;
+			}
+			
+			public function set selected(s:Boolean):void
+			{
+				_selected = s;
+				
+				if(cnv1==null)
+					return;
+				
+				var ap:AnimateProperty=new AnimateProperty(cnv1);
+				ap.duration=500;
+				ap.property = "x";
+				
+				if(s)
+				{
+					ap.toValue=0;
+				}
+				else
+				{
+					ap.toValue =-1*centerImg.x-3;
+				}
+
+				if(animated)
+					ap.play();
+				else
+					cnv1.x = ap.toValue;
+			}
+
+			protected function canvas1_clickHandler(event:MouseEvent):void
+			{
+				selected = !selected;
+			}
+
+			protected function canvas1_creationCompleteHandler(event:FlexEvent):void
+			{
+				leftImg.width = this.width-44;
+				leftLbl.width=leftImg.width-20;
+				rightImg.width = leftImg.width;
+				rightLbl.width=leftLbl.width;
+				
+				centerImg.x=this.width-44;
+				rightImg.x=this.width;
+				rightLbl.x=this.width+10;
+				
+				cnv1.x = -1*centerImg.x-3;
+				selected=_selected;
+			}
+
+		]]>
+	</mx:Script>
+	<mx:Canvas horizontalScrollPolicy="off" verticalScrollPolicy="off" cornerRadius="8" width="100%" height="100">
+		<mx:Canvas id="cnv1" width="200%" height="100" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<mx:Image id="leftImg" source="{leftImage}" y="0" scaleContent="true" maintainAspectRatio="false"/>
+			<mx:Label id="leftLbl" color="0xFFFFFF" fontSize="16" x="10" text="{text1}" textAlign="center" y="2"/>
+			<mx:Image id="rightImg" source="{rightImage}" y="0" scaleContent="true" maintainAspectRatio="false"/>
+			<mx:Label id="rightLbl" color="0x7F7F7F" fontSize="16" text="{text2}" textAlign="center" y="2"/>
+			<mx:Image id="centerImg" source="{centerImage}" y="0"/>
+		</mx:Canvas>
+	</mx:Canvas>
+	<!--<mx:Image id="img1" source="switch.png" x="-53" y="0"/>-->
+	
+</mx:Canvas>

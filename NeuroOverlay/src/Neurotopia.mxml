@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" 
+					   xmlns:sri="com.srilabs.*"
+					   windowComplete="init()" frameRate="24" resize="resizeHandler(event)" activate="activateHandler(event)" deactivate="deactivateHandler(event)" showStatusBar="false" backgroundAlpha="0" alwaysInFront="true">
+
+	<fx:Declarations>
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.gskinner.utils.SWFBridgeAS3;
+			import com.jpl.graphs.Graphs;
+			
+			import flash.display.Screen;
+			
+			import mx.effects.easing.Bounce;
+			import mx.effects.easing.Linear;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.CursorManager;
+			
+			[Bindable]
+			public var In1:Number = 0;
+			[Bindable]
+			public var In2:Number = 0;
+			[Bindable]
+			public var In3:Number = 0;
+			[Bindable]
+			public var In4:Number = 0;
+			[Bindable]
+			public var graphs:Graphs
+			public var BEBridge:SWFBridgeAS3 = new SWFBridgeAS3("_BEConnection",this);
+			
+			private var timer:Timer = new Timer(2000,1);
+			
+			private function init():void{ 
+				this.stage.addEventListener(KeyboardEvent.KEY_DOWN,keyPressHandler);
+				this.addEventListener(NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGE,windowStateChanged);
+				this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;	
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE,deactivationDelayHandler);
+				
+				graphs = new Graphs(graphsContainer.height,graphsContainer.width);
+				graphsContainer.left = -graphsContainer.width
+				graphsContainer.addChild(graphs);
+			}
+			
+			private function keyPressHandler(e:KeyboardEvent):void{
+				if(e.keyCode == 27){
+					e.preventDefault();
+					e.stopImmediatePropagation();
+				}
+			}
+			
+			private function windowStateChanged(e:NativeWindowDisplayStateEvent):void{
+				e.stopImmediatePropagation();
+				if(e.afterDisplayState == "maximized")
+					this.stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+			}
+			
+			public function onSampleReceive(_In1:Number,_In2:Number,_In3:Number,_In4:Number):void{
+				In1 = _In1;
+				In2 = _In2;
+				In3 = _In3;
+				In4 = _In4;
+			}
+			
+			private function showMenu():void{
+				Mouse.show();
+				TweenLite.killTweensOf(menuGroup);
+				TweenLite.to(menuGroup,0.5,{right:0,ease:Linear.easeOut});
+			}
+			
+			private function hideMenu():void{
+				Mouse.hide();
+				TweenLite.killTweensOf(menuGroup);
+				TweenLite.to(menuGroup,0.5,{right:-(menuGroup.width-5),ease:Linear.easeIn});
+			}
+			
+			private function showGraph():void{
+				TweenLite.killTweensOf(graphsContainer);
+				TweenLite.to(graphsContainer,0.5,{left:0,ease:Linear.easeOut});
+			}
+			
+			private function hideGraph():void{
+				TweenLite.killTweensOf(graphsContainer);
+				TweenLite.to(graphsContainer,0.5,{left:-graphs.parentWidth,ease:Linear.easeIn});
+			}
+			
+			private function showObstruct():void{
+				TweenLite.killTweensOf(obstructionContainer);
+				TweenLite.to(obstructionContainer,0.5,{alpha:1,ease:Linear.easeOut});
+			}
+			
+			private function hideObstruct():void{
+				TweenLite.killTweensOf(obstructionContainer);
+				TweenLite.to(obstructionContainer,0.5,{alpha:0,ease:Linear.easeIn});
+			}
+
+			protected function activateHandler(event:Event):void{
+				timer.stop()
+				timer.reset();
+				hideGraph();
+				hideObstruct();
+			}
+
+
+			protected function deactivateHandler(event:Event):void{
+				timer.start();
+			}
+			
+			protected function deactivationDelayHandler(event:TimerEvent):void{
+				if(graphsSwitch.selected)
+					showGraph();
+				else
+					hideGraph();
+				if(obstructSwitch.selected)
+					showObstruct();
+				else
+					hideObstruct();
+			}
+			
+			protected function resizeHandler(event:ResizeEvent):void{
+				if(stage){
+					obstA.width = (this.stage.stageWidth - this.stage.stageHeight)/2
+					obstA.height = this.stage.stageHeight;
+					
+					obstB.width = this.stage.stageHeight
+					obstB.height = this.stage.stageHeight;
+					
+					obstC.width = (this.stage.stageWidth - this.stage.stageHeight)/2
+					obstC.height = this.stage.stageHeight;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:Group id="obstructionContainer" alpha="0">
+		<s:HGroup id="obstruction" alpha="{(1 - graphs.bar2ScaleY) * 2}" gap="0">
+			<s:Rect id="obstA">
+				<s:fill>
+					<s:SolidColor color="0x000000" alpha="1"/>
+				</s:fill>
+			</s:Rect>
+			<s:Rect id="obstB">
+				<s:fill>
+					<s:RadialGradient>
+						<s:GradientEntry color="#000000" ratio="0" alpha="0"/>
+						<s:GradientEntry color="#000000" ratio=".10" alpha="0"/>
+						<s:GradientEntry color="#000000" ratio=".20" alpha="0"/>
+						<s:GradientEntry color="#000000" ratio=".30" alpha=".7"/>
+						<s:GradientEntry color="#000000" ratio=".40" alpha=".72"/>
+						<s:GradientEntry color="#000000" ratio=".50" alpha=".74"/>
+						<s:GradientEntry color="#000000" ratio=".60" alpha=".76"/>
+						<s:GradientEntry color="#000000" ratio=".70" alpha=".78"/>
+						<s:GradientEntry color="#000000" ratio=".80" alpha=".8"/>
+						<s:GradientEntry color="#000000" ratio=".90" alpha="0.9"/>
+						<s:GradientEntry color="#000000" ratio="1" alpha="1"/>
+					</s:RadialGradient>
+				</s:fill>
+			</s:Rect>
+			<s:Rect id="obstC">
+				<s:fill>
+					<s:SolidColor color="0x000000" alpha="1"/>
+				</s:fill>
+			</s:Rect>
+		</s:HGroup>
+	</s:Group>
+	
+	<mx:UIComponent id="graphsContainer" height="50%" width="240" scaleX="1" scaleY="1" verticalCenter="0" alpha="0.8"/>
+	
+	<s:SkinnableContainer id="menuGroup" skinClass="com.jpl.skin.Menu" height="450" width="350" right="-345" verticalCenter="0" rollOver="showMenu()" rollOut="hideMenu()">
+		<s:VGroup gap="20" width="310" height="200" horizontalAlign="center">
+			<s:BorderContainer backgroundAlpha="0.1" height="40" width="250" cornerRadius="5" borderWeight="2" dropShadowVisible="true" borderColor="0xffffff">
+				<s:HGroup height="100%" left="5" top="5" verticalAlign="middle" verticalCenter="0" gap="15">
+					<sri:iCheckBox id="graphsSwitch" width="120" scaleX="0.8" scaleY="0.8" height="30" text1="ON" text2="OFF" animated="true" selected="false"/>
+					<s:Label text="Graphs" fontWeight="bold" left="5" color="0xffffff" verticalCenter="0" verticalAlign="middle"/>		
+				</s:HGroup>
+			</s:BorderContainer>
+			<s:BorderContainer backgroundAlpha="0.1" height="40" width="250" cornerRadius="5" borderWeight="2" dropShadowVisible="true" borderColor="0xffffff">
+				<s:HGroup height="100%" left="5" top="5" verticalAlign="middle" verticalCenter="0" gap="15">
+					<sri:iCheckBox id="obstructSwitch" width="120" scaleX="0.8" scaleY="0.8" height="30" text1="ON" text2="OFF" animated="true" selected="false"/>
+					<s:Label text="Obstruction" fontWeight="bold" left="5" color="0xffffff" verticalCenter="0" verticalAlign="middle"/>		
+				</s:HGroup>
+			</s:BorderContainer>
+		</s:VGroup>
+		<s:Group width="310" height="81" bottom="0">
+			<s:Button id="quitBtn" skinClass="com.jpl.skin.MenuBlackBtn" horizontalCenter="-10" width="81" bottom="0" label="Quit" click="{this.close()}"/>
+		</s:Group>
+	</s:SkinnableContainer>
+</s:WindowedApplication>
