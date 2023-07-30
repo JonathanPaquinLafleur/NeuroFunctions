@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:jpl="com.jpl.*" frameRate="60" backgroundAlpha="0" backgroundColor="0x000000" initialize="initializeHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import away3d.containers.View3D;
+			import away3d.core.managers.Stage3DManager;
+			import away3d.debug.AwayStats;
+			import away3d.entities.Mesh;
+			import away3d.primitives.CubeGeometry;
+			import away3d.primitives.SphereGeometry;
+			
+			import be.aboutme.nativeExtensions.udp.UDPSocket;
+			
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Cubic;
+			import com.gskinner.utils.SWFBridgeAS3;
+			import com.jpl.Racing;
+			import com.jpl.events.GraphEvent;
+			import com.jpl.events.RacingEvent;
+			import com.jpl.graphs.Graphs;
+			
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			import spark.filters.GlowFilter;
+			
+			private const port:uint = 1234;
+			
+			private var index:int = 0;
+			
+//			private var udpSocket:UDPSocket;
+			[Bindable]
+			private var ipVerified:Boolean = false;
+			
+			[Bindable]
+			public var in1:Number = 0;
+			[Bindable]
+			public var in2:Number = 0;
+			
+			public var bar1SimulatedData:Object = {num:0};
+			public var bar2SimulatedData:Object = {num:0};
+		
+			public var BEBridge:SWFBridgeAS3 = new SWFBridgeAS3("_BEConnection",this);
+			
+			protected function initializeHandler(event:FlexEvent):void{
+				NativeApplication.nativeApplication.systemIdleMode = SystemIdleMode.KEEP_AWAKE;
+				
+//				NativeApplication.nativeApplication.addEventListener(Event.DEACTIVATE,deactivate);
+//				NativeApplication.nativeApplication.addEventListener(Event.ACTIVATE,activate);
+
+				racingEngine.addEventListener(RacingEvent.Loaded,activate);
+				
+				this.addEventListener(Event.ADDED_TO_STAGE,addedToStage);
+			}
+			
+			private function addedToStage(e:Event):void{
+				this.removeEventListener(Event.ADDED_TO_STAGE,addedToStage);
+				racingEngine.ui.graphs.addEventListener(GraphEvent.ValueChanged,graphValueChanged);
+				stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+				stage.addEventListener(Event.RESIZE,resizeHandler);
+				if(stage.nativeWindow){
+					stage.nativeWindow.addEventListener(NativeWindowDisplayStateEvent.DISPLAY_STATE_CHANGING,displayStateChanging);
+					stage.nativeWindow.maxSize = new Point(2048,2048);
+				}
+				preventOrient();
+				resizeHandler();
+				
+//				simulateData1();
+//				simulateData2();
+			}
+			
+			private function activate(e:Event = null):void{
+//				udpSocket = new UDPSocket();
+//				udpSocket.addEventListener(DatagramSocketDataEvent.DATA,receiveDataHandler);
+//				udpSocket.bind(port);
+//				udpSocket.receive();
+//				if(ipVerified){
+//					var bytes:ByteArray = new ByteArray();
+//					bytes.writeUTFBytes("1");
+//					udpSocket.send(bytes,ipInput.text,port);
+//				}else
+//					connectionGrp.visible = true;
+			}
+			
+			private function deactivate(e:Event = null):void{
+//				if(udpSocket){
+//					var bytes:ByteArray = new ByteArray();
+//					bytes.writeUTFBytes("0");
+//					udpSocket.send(bytes,ipInput.text,port);
+//					udpSocket.close();
+//				}
+			}
+			
+			private function displayStateChanging(e:NativeWindowDisplayStateEvent):void{
+				if(e.afterDisplayState == NativeWindowDisplayState.MAXIMIZED){
+					e.stopImmediatePropagation()
+					e.preventDefault();
+					stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+				}
+			}
+			
+			private function preventOrient():void { 
+				if (stage.autoOrients) {
+					stage.removeEventListener(StageOrientationEvent.ORIENTATION_CHANGING, orientationChanging);
+					stage.addEventListener(StageOrientationEvent.ORIENTATION_CHANGING, orientationChanging, false, 100, true);
+				}
+			}
+			
+			private function orientationChanging(event:StageOrientationEvent):void {
+				if(event.afterOrientation == StageOrientation.DEFAULT || event.afterOrientation == StageOrientation.UPSIDE_DOWN || event.afterOrientation == StageOrientation.UNKNOWN){
+					event.preventDefault(); 
+				}
+			}
+			
+			private function resizeHandler(e:Event=null):void{
+				var ratio:Number = stage.stageWidth/stage.stageHeight;
+				if(ratio <= 2){
+					racingEngine.setWidth(stage.stageWidth);
+					racingEngine.setHeight(stage.stageHeight);
+					if(racingEngine.ui)
+						racingEngine.ui.updatePositioning();
+				}else{
+					racingEngine.setWidth(stage.stageWidth);
+					racingEngine.setHeight(stage.stageWidth/2);
+				}
+			}
+			
+			public function onSampleReceive(_In1:Number,_In2:Number,_In3:Number,_In4:Number):void{
+				in1 = _In1;
+				in2 = _In2;
+				racingEngine.speed = in2;
+			}
+			
+			protected function receiveDataHandler(event:DatagramSocketDataEvent):void{
+				ipVerified = true;
+				connectionGrp.visible = false;
+				event.data.position = 0;
+				var data:Array = String(event.data).split(",");
+				in1 = data[0];
+				in2 = data[1];
+				racingEngine.speed = in2;
+			}
+			
+			protected function connectBtnTappedHandler(event:MouseEvent):void{
+				var bytes:ByteArray = new ByteArray();
+				bytes.writeUTFBytes("1");
+//				udpSocket.send(bytes,ipInput.text,port);
+			}
+			
+			private function simulateData1():void{
+				TweenLite.to(bar1SimulatedData,randRange(3,6),{num:randRange(1,100),ease:Cubic.easeInOut,onUpdate:updateVal,onComplete:simulateData1})
+			}
+			
+			private function simulateData2():void{
+				TweenLite.to(bar2SimulatedData,randRange(3,6),{num:randRange(1,100),ease:Cubic.easeInOut,onUpdate:updateVal,onComplete:simulateData2})
+			}
+			
+			private function updateVal():void{
+				in1 = bar1SimulatedData.num;
+				in2 = bar2SimulatedData.num;
+				racingEngine.speed = bar2SimulatedData.num;
+			}
+			
+			private function randRange(minNum:Number, maxNum:Number):Number{
+				return (Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum);
+			}
+			
+			private function graphValueChanged(e:GraphEvent):void{
+				var scaleRatio:Number = racingEngine.width/960;
+				bar1Lbl.x = e.data.bar1.position.x - (20 * scaleRatio);
+				bar1Lbl.y = e.data.bar1.position.y + racingEngine.y - (30 * scaleRatio);
+				bar1Lbl.text = e.data.bar1.value;
+				
+				bar2Lbl.x = e.data.bar2.position.x - (10 * scaleRatio);
+				bar2Lbl.y = e.data.bar2.position.y + racingEngine.y - (30 * scaleRatio);
+				bar2Lbl.text = e.data.bar2.value;
+			}
+		]]>
+	</fx:Script>
+	<jpl:Racing id="racingEngine" mouseEnabled="false" mouseChildren="false" horizontalCenter="0" verticalCenter="0"/>
+	<s:Group id="barNumGrp" visible="{!racingEngine.assetsLoading}">
+		<s:Label id="bar1Lbl" fontSize="{30 * (racingEngine.width/960)}" color="0xffffff" fontWeight="bold" filters="{[new spark.filters.GlowFilter(0x000000,1,5,5,10)]}"/>
+		<s:Label id="bar2Lbl" fontSize="{30 * (racingEngine.width/960)}" color="0xffffff" fontWeight="bold" filters="{[new spark.filters.GlowFilter(0x000000,1,5,5,10)]}"/>
+	</s:Group>
+	<s:Label id="loadingLbl" text="LOADING..." visible="{racingEngine.assetsLoading}" fontSize="{30 * (racingEngine.width/960)}" color="0xffffff" horizontalCenter="0" bottom="40"/>
+	<s:VGroup id="connectionGrp" visible="false" horizontalCenter="0" verticalCenter="0">
+		<s:TextInput id="ipInput" text="192.168.0.14"/>
+		<s:Button label="Connect" click="connectBtnTappedHandler(event)"/>
+	</s:VGroup>
+</s:Application>

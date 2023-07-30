@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:UIComponent xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" addedToStage="addedToStage(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import away3d.animators.PathAnimator;
+			import away3d.cameras.lenses.PerspectiveLens;
+			import away3d.containers.ObjectContainer3D;
+			import away3d.containers.Scene3D;
+			import away3d.containers.View3D;
+			import away3d.controllers.CharacterFollowController;
+			import away3d.controllers.HoverController;
+			import away3d.controllers.LookAtController;
+			import away3d.core.managers.Stage3DManager;
+			import away3d.core.managers.Stage3DProxy;
+			import away3d.core.math.MathConsts;
+			import away3d.core.math.Plane3D;
+			import away3d.core.math.Vector3DUtils;
+			import away3d.debug.AwayStats;
+			import away3d.entities.Mesh;
+			import away3d.entities.SegmentSet;
+			import away3d.events.AssetEvent;
+			import away3d.events.Stage3DEvent;
+			import away3d.filters.BloomFilter3D;
+			import away3d.filters.DepthOfFieldFilter3D;
+			import away3d.library.assets.AssetType;
+			import away3d.lights.DirectionalLight;
+			import away3d.lights.shadowmaps.NearDirectionalShadowMapper;
+			import away3d.loaders.Loader3D;
+			import away3d.loaders.misc.AssetLoaderContext;
+			import away3d.loaders.parsers.Max3DSParser;
+			import away3d.materials.ColorMaterial;
+			import away3d.materials.TextureMaterial;
+			import away3d.materials.lightpickers.StaticLightPicker;
+			import away3d.materials.methods.EnvMapAmbientMethod;
+			import away3d.materials.methods.FresnelEnvMapMethod;
+			import away3d.materials.methods.NearShadowMapMethod;
+			import away3d.materials.methods.RimLightMethod;
+			import away3d.materials.methods.SoftShadowMapMethod;
+			import away3d.paths.CubicPath;
+			import away3d.paths.CubicPathSegment;
+			import away3d.primitives.PlaneGeometry;
+			import away3d.primitives.SphereGeometry;
+			import away3d.primitives.data.Segment;
+			import away3d.textures.BitmapCubeTexture;
+			import away3d.textures.BitmapTexture;
+			import away3d.textures.CubeTextureBase;
+			import away3d.tools.helpers.MeshHelper;
+			
+			import com.greensock.TweenMax;
+			import com.greensock.easing.Cubic;
+			import com.greensock.easing.Linear;
+			import com.greensock.easing.Power1;
+			import com.jpl.events.RacingEvent;
+			import com.jpl.graphs.Graphs;
+			
+			import flash.utils.getTimer;
+			
+			import mx.core.ByteArrayAsset;
+			import mx.core.FlexGlobals;
+			
+			import spark.core.SpriteVisualElement;
+			
+			//constante
+			private const trackDefArr:Array = [{x:1803.74,y:5.5825,z:0.0,c1x:1850.97,c1y:-297.201,c1z:0.0,c2x:1668.48,c2y:-366.821,c2z:0.0,endx:1540.12,endy:-474.116,endz:0.0},{x:1540.12,y:-474.116,z:0.0,c1x:1411.77,c1y:-581.41,c1z:0.0,c2x:1207.05,c2y:-726.45,c2z:0.0,endx:1073.81,endy:-639.825,endz:0.0},{x:1073.81,y:-639.825,z:0.0,c1x:940.573,c1y:-553.2,c1z:0.0,c2x:1021.44,c2y:-366.593,c2z:0.0,endx:750.072,endy:-57.6508,endz:0.0},{x:750.072,y:-57.6508,z:0.0,c1x:478.707,c1y:251.291,c1z:0.0,c2x:47.937,c2y:-58.5748,c2z:0.0,endx:2.57361,endy:-222.307,endz:0.0},{x:2.57361,y:-222.307,z:0.0,c1x:-42.7897,c1y:-386.04,c1z:0.0,c2x:3.38074,c2y:-431.3,c2z:0.0,endx:-161.576,endy:-549.474,endz:0.0},{x:-161.576,y:-549.474,z:0.0,c1x:-326.532,c1y:-667.647,c1z:0.0,c2x:-727.383,c2y:-818.292,c2z:0.0,endx:-969.936,endy:-609.555,endz:0.0},{x:-969.936,y:-609.555,z:0.0,c1x:-1212.49,c1y:-400.818,c1z:0.0,c2x:-1478.87,c2y:-43.4814,c2z:0.0,endx:-1245.48,endy:154.845,endz:0.0},{x:-1245.48,y:154.845,z:0.0,c1x:-1012.09,c1y:353.171,c1z:0.0,c2x:-664.353,c2y:127.704,c2z:0.0,endx:-364.634,endy:181.208,endz:0.0},{x:-364.634,y:181.208,z:0.0,c1x:-64.9145,c1y:234.712,c1z:0.0,c2x:40.1198,c2y:568.368,c2z:0.0,endx:272.189,endy:555.851,endz:0.0},{x:272.189,y:555.851,z:0.0,c1x:504.258,c1y:543.334,c1z:0.0,c2x:711.165,c2y:424.764,c2z:0.0,endx:970.354,endy:328.843,endz:0.0},{x:970.354,y:328.843,z:0.0,c1x:1229.54,c1y:232.921,c1z:0.0,c2x:1756.52,c2y:308.366,c2z:0.0,endx:1803.74,endy:5.5825,endz:0.0}];
+			
+			//variables
+			[Bindable]
+			public var assetsLoading:Boolean = true;
+			public var ui:UserInterface = new UserInterface(10);
+			public var prevTime:uint = getTimer();
+			public static var view:View3D = new View3D();
+			private var scene:Scene3D = new Scene3D();
+			private var lens:PerspectiveLens = new PerspectiveLens(43.456);
+			[Bindable]
+			public var cameraController:CharacterFollowController;
+			private var car:ObjectContainer3D;
+			private var chasis:Mesh;
+			private var frontRightWheel:Mesh;
+			private var frontLeftWheel:Mesh;
+			private var rearRightWheel:Mesh;
+			private var rearLeftWheel:Mesh;
+			private var cameraPos:Mesh = new Mesh(new PlaneGeometry(1,1));
+			private var shadow:Mesh = new Mesh(new PlaneGeometry(4,8));
+			private var wheel1PrevPos:Vector3D;
+			private var wheel2PrevPos:Vector3D;
+			private var wheel3PrevPos:Vector3D;
+			private var wheel4PrevPos:Vector3D;
+			private var trackDistanceTArr:Array = [];
+			private var _speed:Number = 0;
+			private var prevSpeed:Number;
+			private var pathAnimator:PathAnimator;
+			private var trackIndex:Number = 0;
+			private var trackPath:CubicPath;
+			private var lightPicker:StaticLightPicker;
+			private var assetsLoadingArr:Array = [];
+			private var brakeLights:ObjectContainer3D = new ObjectContainer3D();
+			private var tmpTrackArr:Array = [];
+			private var envContainer:ObjectContainer3D = new ObjectContainer3D();
+			private var currentTime:uint;
+			
+			
+			//assets
+			[Embed(source="assets/models/f360.3ds", mimeType="application/octet-stream")]
+			private var F360Class:Class;
+			[Embed(source="assets/models/wheel.3ds", mimeType="application/octet-stream")]
+			private var WheelClass:Class;
+			[Embed(source="assets/models/track.3ds", mimeType="application/octet-stream")]
+			private var TrackClass:Class;
+			[Embed(source="assets/models/ground.3ds", mimeType="application/octet-stream")]
+			private var GroundClass:Class;
+			[Embed(source="assets/models/skyDome.3ds", mimeType="application/octet-stream")]
+			private var SkyDomeClass:Class;
+			[Embed(source="assets/models/board.3ds", mimeType="application/octet-stream")]
+			private var BoardClass:Class;
+			
+			[Embed(source="assets/images/f360.png")]
+			private var F360TextureClass:Class;
+			[Embed(source="assets/images/track.jpg")]
+			private var TrackTextureClass:Class;
+			[Embed(source="assets/images/trackSpecular.jpg")]
+			private var TrackSpecularTextureClass:Class;
+			[Embed(source="assets/images/ground.jpg")]
+			private var GroundTextureClass:Class;
+			[Embed(source="assets/images/skyDome.jpg")]
+			private var SkyDomeTextureClass:Class;
+			[Embed(source="assets/images/shadowRectangle.png")]
+			private var ShadowRectangleTextureClass:Class;
+			[Embed(source="assets/images/skyReflectionLeft.jpg")]
+			private var SkyReflectionLeftTextureClass:Class;
+			[Embed(source="assets/images/skyReflectionRight.jpg")]
+			private var SkyReflectionRightTextureClass:Class;
+			[Embed(source="assets/images/skyReflectionTop.jpg")]
+			private var SkyReflectionTopTextureClass:Class;
+			[Embed(source="assets/images/skyReflectionBottom.jpg")]
+			private var SkyReflectionBottomTextureClass:Class;
+			[Embed(source="assets/images/skyReflectionMiddle.jpg")]
+			private var SkyReflectionMiddleTextureClass:Class;
+			[Embed(source="assets/images/brakeLight.png")]
+			private var BrakeLightTextureClass:Class;
+			[Embed(source="assets/images/billboard.jpg")]
+			private var BoardTextureClass:Class;
+			
+			[Embed(source="assets/data/track.txt",mimeType="application/octet-stream")]
+			private var TrackDataClass:Class;
+			
+			private function addedToStage(e:Event):void{
+				
+//				var stats:AwayStats = new AwayStats(view,true);
+//				stats.x = 5;
+//				stats.y = 5;
+//				this.addChild(stats);
+				
+				initScene();
+				
+				initPathAnimator();
+				
+				loadAssets();
+				
+			}
+			
+			private function initScene():void{ 
+				
+				this.addEventListener(Event.ENTER_FRAME,run)
+					
+				view.backgroundColor = 0x000000;
+				view.scene = scene;
+				view.mouseEnabled = false;
+				view.mouseChildren = false;
+				view.antiAlias = 4;
+				this.addChild(view);
+				
+				view.camera.lens = lens;
+				view.camera.lens.near = 0.1
+				view.camera.lens.far = 4500;
+				view.camera.position = new Vector3D(0,10,0);
+				
+	
+				
+				var light:DirectionalLight = new DirectionalLight(1,-0.2,0.32)
+				light.position = new Vector3D(-2500,700,-600)
+				light.ambient = 1
+				light.specular = 1
+				lightPicker = new StaticLightPicker([light])
+				envContainer.addChild(light)
+			
+				scene.addChild(envContainer);
+				
+				ui.updatePositioning();
+				scene.addChild(ui);
+			}
+			
+			private function initPathAnimator():void{
+				var vec:Vector.<Vector3D> = new Vector.<Vector3D>;
+				for each(var obj:Object in trackDefArr){
+					vec.push(new Vector3D(obj.x,obj.z,obj.y));
+					vec.push(new Vector3D(obj.c1x,obj.c1z,obj.c1y));
+					vec.push(new Vector3D(obj.c2x,obj.c2z,obj.c2y));
+					vec.push(new Vector3D(obj.endx,obj.endz,obj.endy))
+				}
+				trackPath = new CubicPath(vec)		
+				pathAnimator = new PathAnimator(trackPath,null,null,false);
+				
+//				printTrackData();
+				
+				var MyFileByteArray:ByteArrayAsset = ByteArrayAsset(new TrackDataClass());
+				tmpTrackArr = String(MyFileByteArray.readUTFBytes(MyFileByteArray.length)).split(",");
+				for(var i:int=0;i<100000;i++)
+					trackDistanceTArr[Number(tmpTrackArr[i])] = i/100000
+			}
+
+			private function loadAssets():void{
+				//Load Car
+				var carLoader:Loader3D = new Loader3D(false);
+				loading(carLoader)
+				carLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onCarLoadedComplete);
+				carLoader.loadData(F360Class,new AssetLoaderContext(false),null,new Max3DSParser());
+				
+				//load Wheel
+				var wheelLoader:Loader3D = new Loader3D(false);
+				loading(wheelLoader)
+				wheelLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onWheelLoadedComplete);
+				wheelLoader.loadData(WheelClass,new AssetLoaderContext(false),null,new Max3DSParser());
+				
+				//Load Track
+				var trackLoader:Loader3D = new Loader3D(false);
+				loading(trackLoader)
+				trackLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onTrackLoadedComplete);
+				trackLoader.loadData(TrackClass,new AssetLoaderContext(false),null,new Max3DSParser());
+				
+				//Load Ground
+				var groundLoader:Loader3D = new Loader3D(false);
+				loading(groundLoader)
+				groundLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onGroundLoadedComplete);
+				groundLoader.loadData(GroundClass,new AssetLoaderContext(false),null,new Max3DSParser());
+				
+				//Load Board
+				var boardLoader:Loader3D = new Loader3D(false);
+				loading(boardLoader)
+				boardLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onBoardLoadedComplete);
+				boardLoader.loadData(BoardClass,new AssetLoaderContext(false),null,new Max3DSParser());
+				
+				//Load SkyDome
+				var skyDomeLoader:Loader3D = new Loader3D(false);
+				loading(skyDomeLoader)
+				skyDomeLoader.addEventListener(AssetEvent.ASSET_COMPLETE,onSkyDomeLoadedComplete);
+				skyDomeLoader.loadData(SkyDomeClass,new AssetLoaderContext(false),null,new Max3DSParser());
+			}
+			
+			private function loading(obj:Object):void{
+				if(assetsLoadingArr.indexOf(obj) == -1)
+					assetsLoadingArr.push(obj)
+			}
+			
+			private function loaded(obj:Object):void{
+				if(assetsLoadingArr.indexOf(obj) != -1)
+					assetsLoadingArr.splice(assetsLoadingArr.indexOf(obj),1)
+				if(assetsLoadingArr.length == 0){
+					assetsLoading = false;
+					this.dispatchEvent(new RacingEvent(RacingEvent.Loaded));
+				}
+			}
+		
+			private function onCarLoadedComplete(e:AssetEvent):void{
+				if (e.asset.assetType == AssetType.MESH) {
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onCarLoadedComplete);
+					loaded(e.target)
+					
+					car = new ObjectContainer3D()
+					car.scaleX = 10;
+					car.scaleY = 10;
+					car.scaleZ = 10;
+					car.x = trackDefArr[0].x
+					car.z = trackDefArr[0].y
+					car.addChild(brakeLights);
+					scene.addChild(car);
+					
+					var brakeLightMat:TextureMaterial = new TextureMaterial(new BitmapTexture(Bitmap(new BrakeLightTextureClass()).bitmapData));
+					brakeLightMat.blendMode = BlendMode.ADD;
+					var brakeLight:Mesh = new Mesh(new PlaneGeometry(0.5,0.5),brakeLightMat);
+					brakeLight.rotationX = -90;
+					brakeLight.x = -0.95;
+					brakeLight.z = -2.93;
+					brakeLight.y = 1.1;
+					var brakeLight2:Mesh = Mesh(brakeLight.clone())
+					brakeLight2.x = 0.95;
+					var brakeLight3:Mesh = Mesh(brakeLight.clone())
+					brakeLight3.x = 0.65;
+					brakeLight3.z = -2.96;
+					brakeLight3.rotationY = -10;
+					var brakeLight4:Mesh = Mesh(brakeLight.clone())
+					brakeLight4.x = -0.65;
+					brakeLight4.z = -2.96;
+					brakeLight4.rotationY = 10;
+					brakeLights.addChild(brakeLight)
+					brakeLights.addChild(brakeLight2)
+					brakeLights.addChild(brakeLight3)
+					brakeLights.addChild(brakeLight4)
+					
+					shadow.material = new TextureMaterial(new BitmapTexture(Bitmap(new ShadowRectangleTextureClass()).bitmapData));
+					TextureMaterial(shadow.material).alphaBlending = true;
+					TextureMaterial(shadow.material).alpha = 0.4
+					car.addChild(shadow)
+					
+					car.addChild(cameraPos);
+					cameraPos.x = -0.875
+					cameraPos.y = 1.156;
+					cameraPos.z = 0.644;
+					cameraPos.visible = false;
+					cameraController = new CharacterFollowController(view.camera,cameraPos,5,69,0.05,40,15)
+					
+					var bmpX:Bitmap = new SkyReflectionRightTextureClass();
+					var bmpXNeg:Bitmap = new SkyReflectionLeftTextureClass();
+					var bmpY:Bitmap = new SkyReflectionMiddleTextureClass();
+					var bmpYNeg:Bitmap = new SkyReflectionMiddleTextureClass();
+					var bmpZ:Bitmap = new SkyReflectionBottomTextureClass();
+					var bmpZNeg:Bitmap = new SkyReflectionTopTextureClass();
+					var fresnelEnvMapMethod:FresnelEnvMapMethod = new FresnelEnvMapMethod(new BitmapCubeTexture(bmpX.bitmapData,bmpXNeg.bitmapData,bmpY.bitmapData,bmpYNeg.bitmapData,bmpZ.bitmapData,bmpZNeg.bitmapData));
+					fresnelEnvMapMethod.fresnelPower = 1;
+					fresnelEnvMapMethod.normalReflectance = 0.5;
+					fresnelEnvMapMethod.alpha = 0.2
+					
+					var mat:TextureMaterial = new TextureMaterial(new BitmapTexture(Bitmap(new F360TextureClass()).bitmapData));
+					mat.gloss = 255;
+					mat.addMethod(fresnelEnvMapMethod);
+					mat.lightPicker = lightPicker;
+					
+					var carMesh:Mesh = Mesh(e.asset);
+					carMesh.material = mat;
+					chasis = carMesh;
+					car.addChild(carMesh);
+					
+					pathAnimator.target = car;
+				}
+			}
+			
+			private function onWheelLoadedComplete(e:AssetEvent):void{
+				if (e.asset.assetType == AssetType.MESH) {
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onWheelLoadedComplete);
+					loaded(e.target)
+					
+					frontRightWheel = Mesh(e.asset);
+					frontRightWheel.material = new TextureMaterial(new BitmapTexture(Bitmap(new F360TextureClass()).bitmapData));
+					frontRightWheel.x = 1.11;
+					frontRightWheel.y = 0.474;
+					frontRightWheel.z = 1.69;
+					frontLeftWheel = Mesh(frontRightWheel.clone());
+					frontLeftWheel.x = -1.11;
+					frontLeftWheel.y = 0.474;
+					frontLeftWheel.z = 1.69;
+					rearRightWheel = Mesh(frontRightWheel.clone());
+					rearRightWheel.x = 1.11;
+					rearRightWheel.y = 0.474;
+					rearRightWheel.z = -2.101;
+					rearLeftWheel = Mesh(frontRightWheel.clone());
+					rearLeftWheel.x = -1.11;
+					rearLeftWheel.y = 0.474;
+					rearLeftWheel.z = -2.101;
+					car.addChild(frontRightWheel)
+					car.addChild(frontLeftWheel)
+					car.addChild(rearRightWheel)
+					car.addChild(rearLeftWheel)
+				}
+			}
+			
+			private function onTrackLoadedComplete(e:AssetEvent):void{
+				if(e.asset.assetType == AssetType.MESH){
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onTrackLoadedComplete);
+					loaded(e.target)
+					
+					var mat:TextureMaterial = new TextureMaterial(new BitmapTexture(Bitmap(new TrackTextureClass()).bitmapData));
+					mat.repeat = true;
+					mat.gloss = 1
+					mat.specular = 0.4;
+					mat.specularMap = new BitmapTexture(Bitmap(new TrackSpecularTextureClass()).bitmapData);
+					mat.ambient = 10
+					//mat.lightPicker = lightPicker;
+					var track:Mesh = Mesh(e.asset);
+					track.material = mat
+					track.y = -1
+					scene.addChild(track);
+				}
+			}
+			
+			private function onGroundLoadedComplete(e:AssetEvent):void{
+				if(e.asset.assetType == AssetType.MESH){
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onGroundLoadedComplete);
+					loaded(e.target)
+
+					var ground:Mesh = Mesh(e.asset);
+					ground.material = new TextureMaterial(new BitmapTexture(Bitmap(new GroundTextureClass()).bitmapData));
+					ground.material.repeat = true;
+					ground.y = -2;
+					ground.scaleX = 2;
+					ground.scaleZ = 2;
+					scene.addChild(ground);
+				}
+			}
+			
+			private function onBoardLoadedComplete(e:AssetEvent):void{
+				if(e.asset.assetType == AssetType.MESH){
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onBoardLoadedComplete);
+					loaded(e.target)
+					
+					var board:Mesh = Mesh(e.asset);
+					board.material = new TextureMaterial(new BitmapTexture(Bitmap(new BoardTextureClass()).bitmapData));
+					scene.addChild(board);
+				}
+			}
+			
+			private function onSkyDomeLoadedComplete(e:AssetEvent):void{
+				if(e.asset.assetType == AssetType.MESH){
+					e.target.removeEventListener(AssetEvent.ASSET_COMPLETE,onSkyDomeLoadedComplete);
+					loaded(e.target)
+					
+					var skyDome:Mesh = Mesh(e.asset);
+					skyDome.material = new TextureMaterial(new BitmapTexture(Bitmap(new SkyDomeTextureClass()).bitmapData));
+					MeshHelper.invertFaces(skyDome);
+					envContainer.addChild(	skyDome);
+				}
+			}
+			
+			public function setHeight(val:Number):void{
+				this.height = val;
+				view.height = val;
+			}
+			
+			public function setWidth(val:Number):void{
+				this.width = val;
+				view.width = val;
+			}
+			
+			public function set speed(val:Number):void{
+				prevSpeed = _speed;
+				_speed = val;
+			}
+			
+			public function get speed():Number{
+				return _speed;
+			}
+			
+			private function run(e:Event):void{
+				if(!assetsLoading){
+					envContainer.rotationY += 0.03;
+					if(car){
+						currentTime = getTimer();
+						var dt:Number = (currentTime - prevTime)/(1000/this.stage.frameRate);
+						if(dt >= this.stage.frameRate)
+							dt = 1
+						trackIndex = trackIndex + ((speed*dt)/80000)
+						prevTime = currentTime
+							
+						if(trackIndex >= 1)
+							trackIndex = trackIndex-1;
+						pathAnimator.progress = trackDistanceTArr[Math.round(trackIndex*10000)/10000]
+						
+						var pos:Vector3D;
+						var projectedT:Number = pathAnimator.progress + 0.005;
+						if(projectedT > 1)
+							projectedT = projectedT - 1;
+						var projectedVec:Vector3D = pathAnimator.getPositionOnPath(projectedT,pos);
+						
+						car.lookAt(projectedVec)
+					
+							
+						projectedT = pathAnimator.progress + 0.008;
+						if(projectedT > 1)
+							projectedT = projectedT - 1;
+						projectedVec = pathAnimator.getPositionOnPath(projectedT,pos);
+
+						var rot:Number;
+						rot = Math.atan2(projectedVec.x - car.x,projectedVec.z - car.z) * 180/ Math.PI
+						rot = normalizedAngle(rot) - normalizedAngle(car.rotationY)
+						frontLeftWheel.rotationY = rot * 10
+						frontRightWheel.rotationY = rot * 10
+
+						if(prevSpeed){
+							var diff:Number = speed - prevSpeed;
+							if(diff >= -0.1)
+								brakeLights.visible = false;
+							else
+								brakeLights.visible = true;
+							if(diff < 0.5 && diff > -0.2)
+								chasis.rotationX = (-diff*5);
+						}
+						
+						if(wheel1PrevPos){
+							var distance1:Number = Vector3D.distance(frontRightWheel.scenePosition,wheel1PrevPos);
+							var distance2:Number = Vector3D.distance(frontLeftWheel.scenePosition,wheel2PrevPos);
+							var distance3:Number = Vector3D.distance(rearRightWheel.scenePosition,wheel3PrevPos);
+							var distance4:Number = Vector3D.distance(rearLeftWheel.scenePosition,wheel4PrevPos);
+							frontRightWheel.rotationX += distance1 * 1.5;
+							frontLeftWheel.rotationX += distance2 * 1.5;
+							rearRightWheel.rotationX += distance3 * 1.5;
+							rearLeftWheel.rotationX += distance4 * 1.5;
+						}
+						
+						wheel1PrevPos = frontRightWheel.scenePosition.clone();
+						wheel2PrevPos = frontLeftWheel.scenePosition.clone();
+						wheel3PrevPos = rearRightWheel.scenePosition.clone();
+						wheel4PrevPos = rearLeftWheel.scenePosition.clone();
+							
+						cameraController.follow(dt);
+						ui.update({position:view.camera.position,targetPosition:cameraPos.scenePosition})
+					}
+					view.render();
+				}
+			}
+			
+			private function printTrackData():void{
+				var prevPos:Vector3D;
+				var pos:Vector3D;
+				var tmpTrackArr:Array = [];
+				for(var i:int=0;i<100000;i++){
+					pos = pathAnimator.getPositionOnPath(i/100000,pos)
+					if(i == 0)
+						tmpTrackArr[i] = 0;
+					else
+						tmpTrackArr[i] = tmpTrackArr[i-1] + Vector3D.distance(prevPos,pos);
+					prevPos = pos.clone();
+				}
+				
+				var trackLength:Number = tmpTrackArr[tmpTrackArr.length-1]
+				var str:String = "";
+				for(i=0;i<100000;i++){
+					tmpTrackArr[i] = Math.round((tmpTrackArr[i]/trackLength)*10000)/10000;
+					str += tmpTrackArr[i]+","
+				}
+				trace(str)
+			}
+			
+			private function normalizedAngle(val:Number):Number{
+				if(val >= 360)
+					 val -= 360
+				if(val < 0)
+					val += 360
+				return val
+			}
+			
+		]]>
+	</fx:Script>
+</mx:UIComponent>
