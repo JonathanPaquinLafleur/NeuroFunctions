@@ -13,6 +13,8 @@ The games were develop to help assist with [EEG](https://en.wikipedia.org/wiki/E
 # NeuroOverlay
 An overlay that could be put on top of any game/software and would cause a vignetting effect to form reducing the visibility of the screen depending on the input signal.
 
+A second mode would pause the game/software process when the input signal falls below a certain threshold.
+
 [![](https://img.youtube.com/vi/lJHSKfDi9AI/hqdefault.jpg)](https://youtu.be/lJHSKfDi9AI)
 
 # NeuroRacing
